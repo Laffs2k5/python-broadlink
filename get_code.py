@@ -18,8 +18,8 @@ def start_capture():
         print "found. Learning from device:"
         print "      ip:\t" + device.host[0]
         print "    port:\t" + str(device.host[1])
-        mac = binascii.hexlify(device.mac)[::-1]
-        print "     mac:\t" + ':'.join([mac[i:i+2] for i in range(0, len(mac), 2)])
+        mac = binascii.hexlify(device.mac)
+        print "     mac:\t" + ':'.join([mac[i-2:i] for i in range(2, len(mac)+2, 2)][::-1])
         print "     key:\t" + binascii.hexlify(device.key)
         print "      iv:\t" + binascii.hexlify(device.iv)
 
