@@ -41,7 +41,8 @@ def gendevice(devtype, host, mac):
                0x2797,  # RM2 Pro Plus HYC
                0x27a1,  # RM2 Pro Plus R1
                0x27a6,  # RM2 Pro PP
-               0x278f   # RM Mini Shate
+               0x278f,  # RM Mini Shate
+               0x27c2   # RM Mini 3
                ],
           a1: [0x2714],  # A1
           mp1: [0x4EB5,  # MP1
@@ -576,19 +577,19 @@ class hysen(device):
     self.type = "Hysen heating controller"
 
   # Send a request
-  # input_payload should be a bytearray, usually 6 bytes, e.g. bytearray([0x01,0x06,0x00,0x02,0x10,0x00]) 
+  # input_payload should be a bytearray, usually 6 bytes, e.g. bytearray([0x01,0x06,0x00,0x02,0x10,0x00])
   # Returns decrypted payload
   # New behaviour: raises a ValueError if the device response indicates an error or CRC check fails
   # The function prepends length (2 bytes) and appends CRC
   def send_request(self,input_payload):
-    
+
     from PyCRC.CRC16 import CRC16
     crc = CRC16(modbus_flag=True).calculate(bytes(input_payload))
 
     # first byte is length, +2 for CRC16
     request_payload = bytearray([len(input_payload) + 2,0x00])
     request_payload.extend(input_payload)
-    
+
     # append CRC
     request_payload.append(crc & 0xFF)
     request_payload.append((crc >> 8) & 0xFF)
@@ -598,9 +599,9 @@ class hysen(device):
 
     # check for error
     err = response[0x22] | (response[0x23] << 8)
-    if err: 
+    if err:
       raise ValueError('broadlink_response_error',err)
-    
+
     response_payload = bytearray(self.decrypt(bytes(response[0x38:])))
 
     # experimental check on CRC in response (first 2 bytes are len, and trailing bytes are crc)
@@ -610,9 +611,9 @@ class hysen(device):
     crc = CRC16(modbus_flag=True).calculate(bytes(response_payload[2:response_payload_len]))
     if (response_payload[response_payload_len] == crc & 0xFF) and (response_payload[response_payload_len+1] == (crc >> 8) & 0xFF):
       return response_payload[2:response_payload_len]
-    else: 
+    else:
       raise ValueError('hysen_response_error','CRC check on response failed')
-      
+
 
   # Get current room temperature in degrees celsius
   def get_temp(self):
@@ -626,7 +627,7 @@ class hysen(device):
 
   # Get full status (including timer schedule)
   def get_full_status(self):
-    payload = self.send_request(bytearray([0x01,0x03,0x00,0x00,0x00,0x16]))    
+    payload = self.send_request(bytearray([0x01,0x03,0x00,0x00,0x00,0x16]))
     data = {}
     data['remote_lock'] =  payload[3] & 1
     data['power'] =  payload[4] & 1
@@ -652,11 +653,11 @@ class hysen(device):
     data['min'] =  payload[20]
     data['sec'] =  payload[21]
     data['dayofweek'] =  payload[22]
-    
+
     weekday = []
     for i in range(0, 6):
       weekday.append({'start_hour':payload[2*i + 23], 'start_minute':payload[2*i + 24],'temp':payload[i + 39]/2.0})
-    
+
     data['weekday'] = weekday
     weekend = []
     for i in range(6, 8):
@@ -693,7 +694,7 @@ class hysen(device):
   # For backwards compatibility only.  Prefer calling set_mode directly.  Note this function invokes loop_mode=0 and sensor=0.
   def switch_to_auto(self):
     self.set_mode(auto_mode=1, loop_mode=0)
-  
+
   def switch_to_manual(self):
     self.set_mode(auto_mode=0, loop_mode=0)
 
