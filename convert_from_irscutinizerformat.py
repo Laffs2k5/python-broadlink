@@ -29,7 +29,10 @@ def convert_from(irScutinizerFile,specific_ir_command=None,specific_ir_command_r
     if specific_ir_command is not None:
         ir_payload = get_command_data(specific_ir_command, specific_ir_command_repetitons)
         ir_payload_broadlink = add_zeros_for_broadlink_format(binascii.hexlify(ir_payload))
-        print irScutinizerFile + specific_ir_command.upper() + "=" + ir_payload_broadlink
+        if (specific_ir_command_repetitons > 1):
+            print irScutinizerFile + specific_ir_command.upper() + "_X" + str(specific_ir_command_repetitons) + "=" + ir_payload_broadlink
+        else:
+            print irScutinizerFile + specific_ir_command.upper() + "=" + ir_payload_broadlink
     else:
         for ir_command, ir_data in commands.iteritems():
             ir_payload = get_command_data(ir_command, 1)
