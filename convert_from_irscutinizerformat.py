@@ -14,6 +14,20 @@ def add_zeros_for_broadlink_format(in_str):
         #print ' is: ' + in_str  # debug
     return in_str
 
+# Support
+def print_command(commandDefPrefix,commandDefName,commandDefPayload):
+    # type: (str, str, str) -> None
+    toReplace = {
+        '+': 'plus',
+        '-': 'minus',
+        ' ': '_',
+        '/': '_',
+        ':': '_'
+        }
+    for key, value in toReplace.iteritems():
+        commandDefName = commandDefName.replace(key, value)
+    print commandDefPrefix.upper() + commandDefName.upper() + "=" + str(commandDefPayload)
+
 # "Main"
 def convert_from(irScutinizerFile,specific_ir_command=None,specific_ir_command_repetitons=None):
     """Start convert ir codes to openhab map format"""
@@ -30,14 +44,17 @@ def convert_from(irScutinizerFile,specific_ir_command=None,specific_ir_command_r
         ir_payload = get_command_data(specific_ir_command, specific_ir_command_repetitons)
         ir_payload_broadlink = add_zeros_for_broadlink_format(binascii.hexlify(ir_payload))
         if (specific_ir_command_repetitons > 1):
-            print irScutinizerFile + specific_ir_command.upper() + "_X" + str(specific_ir_command_repetitons) + "=" + ir_payload_broadlink
+            #print irScutinizerFile.upper() + specific_ir_command.upper() + "_X" + str(specific_ir_command_repetitons) + "=" + ir_payload_broadlink
+            print_command(irScutinizerFile,specific_ir_command + "_X" + str(specific_ir_command_repetitons),ir_payload_broadlink)
         else:
-            print irScutinizerFile + specific_ir_command.upper() + "=" + ir_payload_broadlink
+            #print irScutinizerFile.upper() + specific_ir_command.upper() + "=" + ir_payload_broadlink
+            print_command(irScutinizerFile,specific_ir_command,ir_payload_broadlink)
     else:
         for ir_command, ir_data in commands.iteritems():
             ir_payload = get_command_data(ir_command, 1)
             ir_payload_broadlink = add_zeros_for_broadlink_format(binascii.hexlify(ir_payload))
-            print irScutinizerFile + ir_command.upper() + "=" + ir_payload_broadlink
+            #print irScutinizerFile.upper() + ir_command.replace() .upper() + "=" + ir_payload_broadlink
+            print_command(irScutinizerFile,ir_command,ir_payload_broadlink)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
